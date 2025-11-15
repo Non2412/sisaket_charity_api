@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sisaket Charity - Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .main-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 1em;
+            color: #666;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        th {
+            background: #f8f9fa;
+            color: #333;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .badge.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .badge.paid {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge.confirmed {
+            background: #cce5ff;
+            color: #004085;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-info:hover {
+            background: #138496;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            transform: rotate(180deg);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .product-image {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Sisaket Charity Dashboard</h1>
+            <p>ระบบจัดการข้อมูลการขายเสื้อการกุศล ศรีสะเกษ 243 ปี</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>📦 สินค้าทั้งหมด</h3>
+                <div class="number" id="totalProducts">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>🛒 คำสั่งซื้อทั้งหมด</h3>
+                <div class="number" id="totalOrders">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>👥 ลูกค้าทั้งหมด</h3>
+                <div class="number" id="totalCustomers">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>💰 ยอดขายรวม</h3>
+                <div class="number" id="totalRevenue">-</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('products')">📦 สินค้า</button>
+                <button class="tab" onclick="switchTab('orders')">🛒 คำสั่งซื้อ</button>
+                <button class="tab" onclick="switchTab('customers')">👥 ลูกค้า</button>
+                <button class="tab" onclick="switchTab('settings')">⚙️ การตั้งค่า</button>
+            </div>
+
+            <!-- Products Tab -->
+            <div id="products-tab" class="tab-content active">
+                <div class="search-box">
+                    <input type="text" id="searchProducts" placeholder="🔍 ค้นหาสินค้า..." onkeyup="searchTable('productsTable', this.value)">
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>รหัสสินค้า</th>
+                                <th>ชื่อสินค้า</th>
+                                <th>ราคา</th>
+                                <th>สต็อกรวม</th>
+                                <th>สถานะ</th>
+                                <th>การกระทำ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTable">
+                            <tr>
+                                <td colspan="6" class="loading">กำลังโหลดข้อมูล...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Orders Tab -->
+            <div id="orders-tab" class="tab-content">
+                <div class="search-box">
+                    <input type="text" id="searchOrders" placeholder="🔍 ค้นหาคำสั่งซื้อ..." onkeyup="searchTable('ordersTable', this.value)">
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>เลขที่คำสั่งซื้อ</th>
+                                <th>ลูกค้า</th>
+                                <th>จำนวนสินค้า</th>
+                                <th>ยอดรวม</th>
+                                <th>สถานะ</th>
+                                <th>วันที่สั่ง</th>
+                                <th>การกระทำ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersTable">
+                            <tr>
+                                <td colspan="7" class="loading">กำลังโหลดข้อมูล...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Customers Tab -->
+            <div id="customers-tab" class="tab-content">
+                <div class="search-box">
+                    <input type="text" id="searchCustomers" placeholder="🔍 ค้นหาลูกค้า..." onkeyup="searchTable('customersTable', this.value)">
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ชื่อ</th>
+                                <th>เบอร์โทร</th>
+                                <th>อีเมล</th>
+                                <th>จำนวนคำสั่งซื้อ</th>
+                                <th>ยอดซื้อรวม</th>
+                                <th>วันที่สมัคร</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTable">
+                            <tr>
+                                <td colspan="6" class="loading">กำลังโหลดข้อมูล...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings-tab" class="tab-content">
+                <h2 style="margin-bottom: 20px;">⚙️ การตั้งค่าระบบ</h2>
+                <div id="settingsContent">
+                    <div class="loading">กำลังโหลดข้อมูล...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadAllData()" title="รีเฟรชข้อมูล">🔄</button>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+
+        // Switch between tabs
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Search in table
+        function searchTable(tableId, searchValue) {
+            const table = document.getElementById(tableId);
+            const rows = table.getElementsByTagName('tr');
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchValue.toLowerCase()) ? '' : 'none';
+            }
+        }
+
+        // Load Products
+        async function loadProducts() {
+            try {
+                const response = await fetch(`${API_URL}/products`);
+                const data = await response.json();
+                
+                const tbody = document.getElementById('productsTable');
+                
+                if (data.success && data.data.length > 0) {
+                    tbody.innerHTML = data.data.map(product => {
+                        const totalStock = product.sizes.reduce((sum, size) => sum + size.stock, 0);
+                        return `
+                            <tr>
+                                <td><strong>${product.productCode}</strong></td>
+                                <td>${product.name}</td>
+                                <td>${product.price.toLocaleString()} ฿</td>
+                                <td>${totalStock} ชิ้น</td>
+                                <td><span class="badge ${product.isActive ? 'active' : 'inactive'}">${product.isActive ? 'ใช้งาน' : 'ปิดการใช้งาน'}</span></td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn btn-info" onclick="viewProduct('${product._id}')">ดู</button>
+                                        <button class="btn btn-primary" onclick="editProduct('${product._id}')">แก้ไข</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                    
+                    document.getElementById('totalProducts').textContent = data.count;
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">ไม่มีข้อมูลสินค้า</td></tr>';
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+                document.getElementById('productsTable').innerHTML = 
+                    '<tr><td colspan="6" class="empty-state">❌ เกิดข้อผิดพลาดในการโหลดข้อมูล</td></tr>';
+            }
+        }
+
+        // Load Orders
+        async function loadOrders() {
+            try {
+                const response = await fetch(`${API_URL}/orders`);
+                const data = await response.json();
+                
+                const tbody = document.getElementById('ordersTable');
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    tbody.innerHTML = data.data.map(order => {
+                        const itemCount = order.items.reduce((sum, item) => sum + item.quantity, 0);
+                        const date = new Date(order.createdAt).toLocaleDateString('th-TH');
+                        
+                        return `
+                            <tr>
+                                <td><strong>${order.orderNumber}</strong></td>
+                                <td>${order.customer.name}<br><small>${order.customer.phone}</small></td>
+                                <td>${itemCount} ชิ้น</td>
+                                <td>${order.pricing.total.toLocaleString()} ฿</td>
+                                <td><span class="badge ${order.status}">${getStatusText(order.status)}</span></td>
+                                <td>${date}</td>
+                                <td>
+                                    <div class="actions">
+                                        <button class="btn btn-info" onclick="viewOrder('${order._id}')">ดู</button>
+                                        <button class="btn btn-success" onclick="confirmOrder('${order._id}')">ยืนยัน</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('');
+                    
+                    document.getElementById('totalOrders').textContent = data.count;
+                    
+                    // Calculate revenue
+                    const revenue = data.data
+                        .filter(order => order.payment.status === 'paid')
+                        .reduce((sum, order) => sum + order.pricing.total, 0);
+                    document.getElementById('totalRevenue').textContent = revenue.toLocaleString() + ' ฿';
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="7" class="empty-state">ยังไม่มีคำสั่งซื้อ</td></tr>';
+                    document.getElementById('totalOrders').textContent = '0';
+                    document.getElementById('totalRevenue').textContent = '0 ฿';
+                }
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.getElementById('ordersTable').innerHTML = 
+                    '<tr><td colspan="7" class="empty-state">⚠️ ยังไม่มี API สำหรับคำสั่งซื้อ</td></tr>';
+                document.getElementById('totalOrders').textContent = '0';
+                document.getElementById('totalRevenue').textContent = '0 ฿';
+            }
+        }
+
+        // Load Customers
+        async function loadCustomers() {
+            try {
+                const response = await fetch(`${API_URL}/customers`);
+                const data = await response.json();
+                
+                const tbody = document.getElementById('customersTable');
+                
+                if (data.success && data.data && data.data.length > 0) {
+                    tbody.innerHTML = data.data.map(customer => {
+                        const date = new Date(customer.createdAt).toLocaleDateString('th-TH');
+                        
+                        return `
+                            <tr>
+                                <td>${customer.name}</td>
+                                <td>${customer.phone}</td>
+                                <td>${customer.email || '-'}</td>
+                                <td>${customer.statistics.totalOrders}</td>
+                                <td>${customer.statistics.totalSpent.toLocaleString()} ฿</td>
+                                <td>${date}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                    
+                    document.getElementById('totalCustomers').textContent = data.count;
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-state">ยังไม่มีข้อมูลลูกค้า</td></tr>';
+                    document.getElementById('totalCustomers').textContent = '0';
+                }
+            } catch (error) {
+                console.error('Error loading customers:', error);
+                document.getElementById('customersTable').innerHTML = 
+                    '<tr><td colspan="6" class="empty-state">⚠️ ยังไม่มี API สำหรับลูกค้า</td></tr>';
+                document.getElementById('totalCustomers').textContent = '0';
+            }
+        }
+
+        // Load Settings
+        async function loadSettings() {
+            try {
+                const response = await fetch(`${API_URL}/settings`);
+                const data = await response.json();
+                
+                const container = document.getElementById('settingsContent');
+                
+                if (data.success && data.data) {
+                    container.innerHTML = data.data.map(setting => `
+                        <div style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                            <h3 style="margin-bottom: 15px; color: #667eea;">${setting.key}</h3>
+                            <pre style="background: white; padding: 15px; border-radius: 8px; overflow-x: auto;">${JSON.stringify(setting.value, null, 2)}</pre>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<div class="empty-state">ไม่มีการตั้งค่า</div>';
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+                document.getElementById('settingsContent').innerHTML = 
+                    '<div class="empty-state">⚠️ ยังไม่มี API สำหรับการตั้งค่า</div>';
+            }
+        }
+
+        // Helper functions
+        function getStatusText(status) {
+            const statusMap = {
+                'pending': 'รอดำเนินการ',
+                'confirmed': 'ยืนยันแล้ว',
+                'preparing': 'กำลังเตรียม',
+                'shipped': 'จัดส่งแล้ว',
+                'delivered': 'ส่งถึงแล้ว',
+                'cancelled': 'ยกเลิก'
+            };
+            return statusMap[status] || status;
+        }
+
+        function viewProduct(id) {
+            alert(`ดูรายละเอียดสินค้า ID: ${id}`);
+        }
+
+        function editProduct(id) {
+            alert(`แก้ไขสินค้า ID: ${id}`);
+        }
+
+        function viewOrder(id) {
+            alert(`ดูรายละเอียดคำสั่งซื้อ ID: ${id}`);
+        }
+
+        function confirmOrder(id) {
+            alert(`ยืนยันคำสั่งซื้อ ID: ${id}`);
+        }
+
+        // Load all data
+        function loadAllData() {
+            loadProducts();
+            loadOrders();
+            loadCustomers();
+            loadSettings();
+        }
+
+        // Initial load
+        window.onload = loadAllData;
+    </script>
+</body>
+</html>

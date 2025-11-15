@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./src/config/database');
 const productRoutes = require('./src/routes/products');
+const path = require('path');
+const ordersRoutes = require('./src/routes/orders');
+const customersRoutes = require('./src/routes/customers');
 require('dotenv').config();
 
 const app = express();
@@ -10,14 +13,22 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use(express.static('public'));
 // Connect to MongoDB
 connectDB();
 
 // Routes
 app.use('/api/products', productRoutes);
+app.use('/api/orders', ordersRoutes);
+app.use('/api/customers', customersRoutes);
+
 
 // Root route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// API Docs
 app.get('/', (req, res) => {
   res.json({
     message: '🎉 Sisaket Charity API',
