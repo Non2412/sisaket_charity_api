@@ -34,6 +34,12 @@ const connectDB = async () => {
     family: 4
   };
 
+  // Allow an opt-in insecure TLS mode for debugging (DO NOT enable in production)
+  if (process.env.DEBUG_MONGO_ALLOW_INSECURE === 'true') {
+    console.warn('⚠️ DEBUG_MONGO_ALLOW_INSECURE is enabled — TLS certificate verification will be relaxed (testing only)');
+    connectOptions.tlsInsecure = true;
+  }
+
   // Retry/connect loop with exponential backoff (keeps trying, does not exit the process)
   let attempt = 0;
   const maxDelay = 30000; // 30s
@@ -49,6 +55,8 @@ const connectDB = async () => {
     } catch (error) {
       const delay = Math.min(1000 * Math.pow(2, attempt - 1), maxDelay);
       console.error(`❌ MongoDB Connection Error (attempt ${attempt}): ${error.message}`);
+      // Full error object for logs (helps Render/Atlas debugging)
+      console.error(error);
       // If TLS alert or ReplicaSetNoPrimary appears, give actionable hint
       if (error && error.message && /ReplicaSetNoPrimary|TLS|SSL|ssl/i.test(error.message)) {
         console.error('ℹ️ Hint: If you are using MongoDB Atlas, ensure your connection string is the SRV form (mongodb+srv://...), that the user:pass are correct, and that Atlas IP Access List allows connections from your host (or 0.0.0.0/0 for testing).');
@@ -68,6 +76,14 @@ mongoose.connection.on('disconnected', () => {
 
 mongoose.connection.on('error', (err) => {
   console.error('❌ MongoDB Error:', err);
+});
+
+mongoose.connection.on('connected', () => {
+  console.log('✅ Mongoose event: connected');
+});
+
+mongoose.connection.on('reconnectFailed', () => {
+  console.error('❌ Mongoose event: reconnectFailed');
 });
 
 module.exports = connectDB;
