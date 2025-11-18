@@ -16,37 +16,38 @@ import 'dotenv/config';
 
 const app = express();
 
-// FORCE all responses to use HTTP 200 status code.
-// This monkey-patches `res.status` and `res.sendStatus` so callers
-// that set non-200 statuses will still return HTTP 200 to clients.
-// Use with caution — this is intentionally forcing 200 for all responses.
-app.use((req, res, next) => {
-  // store originals
-  // @ts-ignore - dynamic patching for debugging/force-200 behavior
-  const _origStatus = res.status;
-  // @ts-ignore
-  const _origSendStatus = res.sendStatus;
+// FORCE_HTTP_200 env toggle: if set to 'true', force all HTTP responses to 200.
+if (process.env.FORCE_HTTP_200 === 'true') {
+  app.use((req, res, next) => {
+    // store originals
+    // @ts-ignore - dynamic patching for debugging/force-200 behavior
+    const _origStatus = res.status;
+    // @ts-ignore
+    const _origSendStatus = res.sendStatus;
 
-  // override status to always set 200
-  // @ts-ignore
-  res.status = function (code: number) {
-    return _origStatus.call(this, 200);
-  };
+    // override status to always set 200
+    // @ts-ignore
+    res.status = function (code: number) {
+      return _origStatus.call(this, 200);
+    };
 
-  // override sendStatus to send a 200 and include original code in body
-  // @ts-ignore
-  res.sendStatus = function (code: number) {
-    _origStatus.call(this, 200);
-    // respond with a JSON body indicating the original status for debugging
-    try {
-      return this.json({ forcedStatus: 200, originalStatus: code });
-    } catch (e) {
-      return this.send(String(code));
-    }
-  };
+    // override sendStatus to send a 200 and include original code in body
+    // @ts-ignore
+    res.sendStatus = function (code: number) {
+      _origStatus.call(this, 200);
+      // respond with a JSON body indicating the original status for debugging
+      try {
+        return this.json({ forcedStatus: 200, originalStatus: code });
+      } catch (e) {
+        return this.send(String(code));
+      }
+    };
 
-  next();
-});
+    next();
+  });
+} else {
+  // no-op: allow normal status codes
+}
 
 // Simple request logger for debugging
 app.use((req, res, next) => {
