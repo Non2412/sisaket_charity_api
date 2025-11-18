@@ -59,7 +59,7 @@ const productSchema = new mongoose.Schema({
 });
 
 // Indexes
-productSchema.index({ productCode: 1 });
+// `productCode` is declared `unique: true` on the field; avoid duplicate index definitions
 productSchema.index({ isActive: 1 });
 productSchema.index({ name: 'text', description: 'text' });
 

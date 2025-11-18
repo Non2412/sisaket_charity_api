@@ -25,7 +25,6 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
-userSchema.index({ googleId: 1 });
-userSchema.index({ email: 1 });
+// `googleId` and `email` are declared `unique: true` on the fields; avoid duplicate index declarations
 
 module.exports = mongoose.model('User', userSchema);

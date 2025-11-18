@@ -34,7 +34,6 @@ const adminSchema = new mongoose.Schema({
   timestamps: true
 });
 
-adminSchema.index({ username: 1 });
-adminSchema.index({ email: 1 });
+// `username` and `email` are declared `unique: true` on the fields; avoid duplicate index declarations
 
 module.exports = mongoose.model('Admin', adminSchema);

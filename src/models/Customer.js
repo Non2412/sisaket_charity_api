@@ -35,7 +35,7 @@ const customerSchema = new mongoose.Schema({
   timestamps: true
 });
 
-customerSchema.index({ phone: 1 });
+// `phone` is declared `unique: true` on the field; avoid duplicate index declaration
 customerSchema.index({ email: 1 });
 
 module.exports = mongoose.model('Customer', customerSchema);

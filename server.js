@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const connectDB = require('./src/config/database');
+const mongoose = require('mongoose');
 
 // Import routes
 const productRoutes = require('./src/routes/products');
@@ -82,12 +83,19 @@ app.get('/api', (req, res) => {
 
 // Health check
 app.get('/health', (req, res) => {
+  const stateMap = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting'
+  };
+  const readyState = mongoose.connection.readyState;
   res.json({
-    status: 'OK',
+    status: readyState === 1 ? 'OK' : 'DEGRADED',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'production',
-    database: 'Connected'
+    database: stateMap[readyState] || 'unknown'
   });
 });
 
