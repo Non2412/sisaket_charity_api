@@ -32,7 +32,18 @@ app.use(express.static('public'));
 // Connect to MongoDB
 connectDB();
 
-// API Routes
+// Middleware to return 503 when DB not ready
+const dbReadyMiddleware = (req, res, next) => {
+  // mongoose connection readyState: 1 = connected
+  if (mongoose.connection.readyState === 1) return next();
+  return res.status(503).json({
+    success: false,
+    message: 'Service temporarily unavailable - database not ready'
+  });
+};
+
+// API Routes (protect with DB-ready middleware)
+app.use('/api', dbReadyMiddleware);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/customers', customerRoutes);
