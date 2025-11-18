@@ -71,13 +71,16 @@ app.use(express.static('public'));
 // Connect to MongoDB
 connectDB();
 
-// Middleware to return 503 when DB not ready
+// Middleware: don't block requests when DB is not ready.
+// Instead, mark the request/response with DB readiness info and continue.
 const dbReadyMiddleware = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  if (mongoose.connection.readyState === 1) return next();
-  return res.status(503).json({
-    success: false,
-    message: 'Service temporarily unavailable - database not ready'
-  });
+  const ready = mongoose.connection.readyState === 1;
+  // expose readiness to handlers
+  // @ts-ignore
+  req.dbReady = ready;
+  res.setHeader('X-DB-READY', ready ? 'true' : 'false');
+  // continue handling request even if DB not ready — handlers should handle missing DB gracefully
+  return next();
 };
 
 // API Routes (protect with DB-ready middleware)
