@@ -110,6 +110,43 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Debug route (safe/masked) to help verify environment and DB state
+app.get('/debug/mongo', (req, res) => {
+  const stateMap = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting'
+  };
+
+  const rawUrl = process.env.MONGOOSE_URL || process.env.MONGODB_URI || null;
+  let masked = null;
+  if (rawUrl) {
+    // mask credentials if present
+    try {
+      const url = new URL(rawUrl);
+      if (url.username) {
+        url.password = url.password ? '*****' : '';
+        masked = `${url.protocol}//${url.username}:*****@${url.host}${url.pathname}${url.search}`;
+      } else {
+        masked = `${url.protocol}//${url.host}${url.pathname}${url.search}`;
+      }
+    } catch (e) {
+      // fallback: do a simple redact of @-separated credentials
+      masked = rawUrl.replace(/:[^:@]+@/, ':*****@');
+    }
+  }
+
+  res.json({
+    success: true,
+    environment: process.env.NODE_ENV || 'production',
+    port: process.env.PORT || process.env.PORT || 3000,
+    mongoose_ready_state: mongoose.connection.readyState,
+    mongoose_state: stateMap[mongoose.connection.readyState] || 'unknown',
+    mongoose_url_masked: masked
+  });
+});
+
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({
