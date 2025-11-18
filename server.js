@@ -67,115 +67,12 @@ app.get('/', (req, res) => {
         products: '/api/products',
         orders: '/api/orders',
         customers: '/api/customers',
-        users: '/api/users',
-        settings: '/api/settings',
-        statistics: '/api/statistics'
-      }
-    });
-  }
-});
-
-// API Info
-app.get('/api', (req, res) => {
-  res.json({
-    message: '🎉 Sisaket Charity API',
-    version: '1.0.0',
-    environment: process.env.NODE_ENV || 'production',
-    endpoints: {
-      products: '/api/products',
-      orders: '/api/orders',
-      customers: '/api/customers',
-      users: '/api/users',
-      settings: '/api/settings',
-      statistics: '/api/statistics'
-    }
-  });
-});
-
-// Health check
-app.get('/health', (req, res) => {
-  const stateMap = {
-    0: 'disconnected',
-    1: 'connected',
-    2: 'connecting',
-    3: 'disconnecting'
-  };
-  const readyState = mongoose.connection.readyState;
-  res.json({
-    status: readyState === 1 ? 'OK' : 'DEGRADED',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'production',
-    database: stateMap[readyState] || 'unknown'
-  });
-});
-
-// Debug route (safe/masked) to help verify environment and DB state
-app.get('/debug/mongo', (req, res) => {
-  const stateMap = {
-    0: 'disconnected',
-    1: 'connected',
-    2: 'connecting',
-    3: 'disconnecting'
-  };
-
-  const rawUrl = process.env.MONGOOSE_URL || process.env.MONGODB_URI || null;
-  let masked = null;
-  if (rawUrl) {
-    // mask credentials if present
-    try {
-      const url = new URL(rawUrl);
-      if (url.username) {
-        url.password = url.password ? '*****' : '';
-        masked = `${url.protocol}//${url.username}:*****@${url.host}${url.pathname}${url.search}`;
-      } else {
-        masked = `${url.protocol}//${url.host}${url.pathname}${url.search}`;
-      }
-    } catch (e) {
-      // fallback: do a simple redact of @-separated credentials
-      masked = rawUrl.replace(/:[^:@]+@/, ':*****@');
-    }
-  }
-
-  res.json({
-    success: true,
-    environment: process.env.NODE_ENV || 'production',
-    port: process.env.PORT || process.env.PORT || 3000,
-    mongoose_ready_state: mongoose.connection.readyState,
-    mongoose_state: stateMap[mongoose.connection.readyState] || 'unknown',
-    mongoose_url_masked: masked
-  });
-});
-
-// 404 Handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found',
-    path: req.path
-  });
-});
-
-// Error Handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    success: false,
-    message: 'Something went wrong!',
-    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
-  });
-});
-
-const PORT = process.env.PORT || 3000;
-const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
-
-app.listen(PORT, HOST, () => {
-  console.log('='.repeat(50));
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log(`📊 Environment: ${process.env.NODE_ENV || 'production'}`);
-  console.log(`💚 Health Check: /health`);
-  console.log(`📝 API Info: /api`);
-  console.log('='.repeat(50));
-});
-
-module.exports = app;
+        // Wrapper to start compiled TypeScript app if available
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          require('./dist/server.js');
+        } catch (e) {
+          console.error('Compiled server not found. Run `npm run build` then `npm start` to run the TypeScript build.');
+          console.error(e && e.message ? e.message : e);
+          process.exit(1);
+        }
