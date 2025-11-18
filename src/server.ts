@@ -16,6 +16,13 @@ import 'dotenv/config';
 
 const app = express();
 
+// Simple request logger for debugging
+app.use((req, res, next) => {
+  const now = new Date().toISOString();
+  console.log(`[REQ] ${now} ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 // Middleware
 app.use(
   cors({
@@ -138,7 +145,7 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(500).json({ success: false, message: 'Something went wrong!', error: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error' });
 });
 
-const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 10000;
 const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
 
 app.listen(PORT, HOST, () => {
